@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import MainLayout from '@/components/layout/MainLayout';
 import Dashboard from '@/pages/Dashboard.jsx';
 import MyHours from '@/pages/MyHours.jsx';
-import Clocking from '@/pages/Clocking.jsx';
+import ClockIn from '@/pages/ClockIn.jsx';
 import AbsenceRequests from '@/pages/AbsenceRequests.jsx';
 import EmployeeManagement from '@/pages/EmployeeManagement.jsx';
 import DepartmentManagement from '@/pages/DepartmentManagement.jsx';
@@ -57,7 +57,7 @@ function AppContent() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<ProtectedRoute element={Dashboard} />} />
           <Route path="/my-hours" element={<ProtectedRoute element={MyHours} />} />
-          <Route path="/clocking" element={<ProtectedRoute element={Clocking} />} />
+          <Route path="/clocking" element={<ProtectedRoute element={ClockIn} />} />
           <Route path="/absence-requests" element={<ProtectedRoute element={AbsenceRequests} />} />
           <Route path="/employee-management" element={<ProtectedRoute element={EmployeeManagement} role="Admin" />} />
           <Route path="/department-management" element={<ProtectedRoute element={DepartmentManagement} role="Admin" />} />

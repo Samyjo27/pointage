@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -33,6 +34,20 @@ const Agenda = () => {
 	const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
 	const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 	const today = () => setCurrentDate(new Date());
+
+	const [notes, setNotes] = useState(() => {
+		try { return JSON.parse(localStorage.getItem('agenda_notes') || '{}'); } catch { return {}; }
+	});
+
+	const getKeyForDay = (day) => `${currentDate.getFullYear()}-${currentDate.getMonth()+1}-${day}`;
+
+	const saveNote = (day, text) => {
+		if (!day) return;
+		const key = getKeyForDay(day);
+		const next = { ...notes, [key]: text };
+		setNotes(next);
+		localStorage.setItem('agenda_notes', JSON.stringify(next));
+	};
 
 	return (
 		<div className="space-y-6">
@@ -67,8 +82,16 @@ const Agenda = () => {
 					{weeks.map((week, wi) => (
 						<React.Fragment key={wi}>
 							{week.map((day, di) => (
-								<div key={`${wi}-${di}`} className={`min-h-[80px] rounded-lg p-2 border ${isDarkMode ? 'border-gray-700/50 bg-gray-800/30' : 'border-gray-200 bg-white'}`}>
-									<div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{day || ''}</div>
+								<div key={`${wi}-${di}`} className={`min-h-[120px] rounded-lg p-2 border ${isDarkMode ? 'border-gray-700/50 bg-gray-800/30' : 'border-gray-200 bg-white'}`}>
+									<div className={`text-xs mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{day || ''}</div>
+									{day && (
+										<Input
+											value={notes[getKeyForDay(day)] || ''}
+											onChange={(e) => saveNote(day, e.target.value)}
+											placeholder="Note..."
+											className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} h-8 text-xs`}
+										/>
+									)}
 								</div>
 							))}
 						</React.Fragment>

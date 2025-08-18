@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,12 +19,18 @@ const pageTransition = {
 
 const DepartmentManagement = () => {
   const { toast } = useToast();
+  const [departments, setDepartments] = useState(['Direction', 'RH', 'Informatique']);
+  const [newDept, setNewDept] = useState('');
 
-  const handleNotImplemented = () => {
-    toast({
-      title: "🚧 Fonctionnalité en cours de développement",
-      description: "Cette fonctionnalité n'est pas encore implémentée. Vous pourrez la demander dans un prochain prompt ! 🚀",
-    });
+  const handleAdd = () => {
+    if (!newDept.trim()) return;
+    if (departments.includes(newDept.trim())) {
+      toast({ variant: 'destructive', title: 'Déjà existant', description: 'Ce secteur existe déjà.' });
+      return;
+    }
+    setDepartments(prev => [...prev, newDept.trim()]);
+    setNewDept('');
+    toast({ title: 'Secteur ajouté' });
   };
 
   return (
@@ -40,10 +46,16 @@ const DepartmentManagement = () => {
         <meta name="description" content="Gérez les secteurs d'activité de l'entreprise." />
       </Helmet>
       <h1 className="text-3xl font-bold text-white mb-6">Gestion des secteurs</h1>
-      <p className="text-gray-300 mb-4">
-        Gérez les différents secteurs de votre entreprise.
-      </p>
-      <Button onClick={handleNotImplemented}>Ajouter un secteur</Button>
+      <p className="text-gray-300 mb-4">Gérez les différents secteurs de votre entreprise.</p>
+      <div className="flex gap-2 mb-6">
+        <input value={newDept} onChange={(e) => setNewDept(e.target.value)} placeholder="Nouveau secteur" className="px-3 py-2 rounded bg-white/10 border border-white/20 text-white" />
+        <Button onClick={handleAdd}>Ajouter</Button>
+      </div>
+      <ul className="space-y-2">
+        {departments.map(d => (
+          <li key={d} className="p-3 rounded border border-white/10 glass-effect text-white">{d}</li>
+        ))}
+      </ul>
     </motion.div>
   );
 };

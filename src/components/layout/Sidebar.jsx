@@ -11,6 +11,7 @@ import {
   Building,
   Puzzle,
   FileText,
+  Bell,
   Settings,
   LogOut,
   Briefcase,
@@ -92,6 +93,12 @@ const navItems = [
     label: 'Export / Rapports', 
     path: '/reports', 
     roles: ['SuperAdmin', 'Admin', 'Manager'] 
+  },
+  { 
+    icon: Bell, 
+    label: 'Notifications', 
+    path: '/notifications', 
+    roles: ['SuperAdmin', 'Admin', 'Manager', 'Employé'] 
   },
   { 
     icon: Settings, 

@@ -67,24 +67,21 @@ const Reports = () => {
       return;
     }
 
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    // Activer les rapports avec un mock de génération
+    setTimeout(() => {
+      toast({
+        title: 'Rapport généré',
+        description: `Type: ${reportType}, Période: ${dateRange}${department !== 'all' ? `, Secteur: ${department}` : ''}${employee !== 'all' ? `, Employé: ${employee}` : ''}`,
+      });
+    }, 500);
   };
 
   const handleExportExcel = () => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    toast({ title: 'Export Excel', description: 'Export simulé en .xlsx' });
   };
 
   const handleExportPDF = () => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    toast({ title: 'Export PDF', description: 'Export simulé en .pdf' });
   };
 
   const quickStats = {

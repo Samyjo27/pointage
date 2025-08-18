@@ -24,12 +24,13 @@ import {
 } from 'lucide-react';
 
 const EmployeeManagement = () => {
-  const { user } = useAuth();
+  const { user, createUser } = useAuth();
   const { toast } = useToast();
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [newUser, setNewUser] = useState({ username: '', name: '', role: 'Employé', password: '', email: '' });
 
   const departments = [
     'Direction', 'RH', 'Informatique', 'Comptabilité', 'Commercial', 
@@ -131,10 +132,22 @@ const EmployeeManagement = () => {
   };
 
   const handleAddEmployee = () => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    if (user.role !== 'SuperAdmin') {
+      toast({ variant: 'destructive', title: 'Accès refusé', description: 'Réservé au SuperAdmin.' });
+      return;
+    }
+    setShowAddForm(true);
+  };
+
+  const handleCreateUser = () => {
+    const res = createUser(newUser);
+    if (!res.success) {
+      toast({ variant: 'destructive', title: 'Erreur', description: res.message });
+      return;
+    }
+    toast({ title: 'Utilisateur créé', description: res.message });
+    setShowAddForm(false);
+    setNewUser({ username: '', name: '', role: 'Employé', password: '', email: '' });
   };
 
   const handleEditEmployee = (employeeId) => {
@@ -300,6 +313,53 @@ const EmployeeManagement = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {showAddForm && user.role === 'SuperAdmin' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <Card className="glass-effect border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white">Créer un nouvel utilisateur</CardTitle>
+                <CardDescription className="text-gray-400">SuperAdmin uniquement</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-300">Nom d'utilisateur</Label>
+                  <Input value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} className="bg-white/5 border-white/20 text-white" />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Nom complet</Label>
+                  <Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} className="bg-white/5 border-white/20 text-white" />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Rôle</Label>
+                  <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Manager">Manager</SelectItem>
+                      <SelectItem value="Employé">Employé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-300">Mot de passe</Label>
+                  <Input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} className="bg-white/5 border-white/20 text-white" />
+                </div>
+                <div className="md:col-span-2">
+                  <Label className="text-gray-300">Email (optionnel)</Label>
+                  <Input value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} className="bg-white/5 border-white/20 text-white" />
+                </div>
+                <div className="md:col-span-2 flex gap-2">
+                  <Button onClick={handleCreateUser} className="bg-green-600 hover:bg-green-700">Créer</Button>
+                  <Button variant="outline" onClick={() => setShowAddForm(false)}>Annuler</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Employees List */}
         <motion.div

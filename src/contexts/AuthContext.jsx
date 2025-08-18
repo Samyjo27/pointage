@@ -160,6 +160,34 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Création d'utilisateur (SuperAdmin uniquement)
+  const createUser = (newUser) => {
+    if (user?.role !== 'SuperAdmin') {
+      return { success: false, message: "Seul le SuperAdmin peut créer des utilisateurs." };
+    }
+
+    const { username, name, role, password, email } = newUser || {};
+    if (!username || !name || !role || !password) {
+      return { success: false, message: "Champs requis manquants." };
+    }
+    if (MOCK_USERS[username]) {
+      return { success: false, message: "Ce nom d'utilisateur existe déjà." };
+    }
+
+    const nextId = Math.max(...Object.values(MOCK_USERS).map(u => u.id)) + 1;
+    MOCK_USERS[username] = {
+      id: nextId,
+      username,
+      name,
+      role,
+      password,
+      email: email || `${username}@example.com`,
+      ...(role === 'Employé' ? { hourlyRate: 10, salaryType: 'hourly' } : {})
+    };
+
+    return { success: true, message: "Utilisateur créé avec succès.", user: MOCK_USERS[username] };
+  };
+
   // Fonction pour obtenir les membres de l'équipe d'un manager
   const getTeamMembers = (managerId) => {
     return Object.values(MOCK_USERS).filter(user => 
@@ -201,6 +229,7 @@ export const AuthProvider = ({ children }) => {
     getAllEmployees,
     getTeams,
     changePassword,
+    createUser,
     MOCK_USERS,
     MOCK_TEAMS
   };
