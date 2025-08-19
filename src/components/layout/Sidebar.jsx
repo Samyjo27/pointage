@@ -74,7 +74,7 @@ const navItems = [
     icon: UserCheck, 
     label: 'Gestion d\'équipe', 
     path: '/team-management', 
-    roles: ['Manager'] 
+    roles: ['SuperAdmin', 'Admin'] 
   },
   { 
     icon: DollarSign, 
@@ -182,8 +182,13 @@ const Sidebar = () => {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} flex items-center gap-2`}>
                   {user.name}
+                  {user.role === 'Manager' && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${isDarkMode ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                      Manager
+                    </span>
+                  )}
                 </p>
                 <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   {user.role}

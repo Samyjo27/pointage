@@ -145,9 +145,20 @@ export const AuthProvider = ({ children }) => {
   const login = (username, password) => {
     const foundUser = MOCK_USERS[username];
     if (foundUser && foundUser.password === password) {
-      if (foundUser.role !== 'SuperAdmin' && foundUser.role !== 'Admin' && !isAllowedByIP) {
-        return { success: false, message: "Veuillez vous connecter depuis le réseau de l'entreprise." };
-      }
+      // Enforce optional network restriction from NetworkContext's config persisted in localStorage
+      try {
+        const cfg = JSON.parse(localStorage.getItem('network_config') || '{"enforce":false,"allowed":[]}');
+        const enforce = !!cfg.enforce;
+        // If enforcement is on and user is not privileged, block unless IP is allowed.
+        if (enforce && foundUser.role !== 'SuperAdmin' && foundUser.role !== 'Admin') {
+          const currentIP = '192.168.1.100'; // Replace with real IP retrieval in production
+          const allowed = Array.isArray(cfg.allowed) ? cfg.allowed : [];
+          const ok = allowed.includes(currentIP);
+          if (!ok) {
+            return { success: false, message: "Accès refusé: connexion hors du réseau autorisé." };
+          }
+        }
+      } catch {}
       localStorage.setItem('timeTrackUser', JSON.stringify(foundUser));
       setUser(foundUser);
       return { success: true };

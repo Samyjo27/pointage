@@ -20,6 +20,13 @@ export const NetworkProvider = ({ children }) => {
     ip: '192.168.1.100',
     isChecking: false
   });
+  const [networkConfig, setNetworkConfig] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('network_config') || '{"enforce":false,"allowed":[]}');
+    } catch {
+      return { enforce: false, allowed: [] };
+    }
+  });
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -30,13 +37,14 @@ export const NetworkProvider = ({ children }) => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Mock network validation logic
-    const allowedIPs = ['192.168.1.100', '192.168.1.101', '10.0.0.50'];
-    const currentIP = '192.168.1.100'; // TODO: Replace with real IP lookup via backend/service
+    // Mock network validation logic (replace with real IP lookup via backend/service)
+    const currentIP = '192.168.1.100';
+    const enforce = !!networkConfig?.enforce;
+    const allowedIPs = Array.isArray(networkConfig?.allowed) ? networkConfig.allowed : [];
     
     // Admin/SuperAdmin can access from anywhere
     const isPrivileged = user?.role === 'Admin' || user?.role === 'SuperAdmin';
-    const isAllowed = isPrivileged || allowedIPs.includes(currentIP);
+    const isAllowed = isPrivileged || !enforce || allowedIPs.includes(currentIP);
     
     setNetworkStatus({
       isAllowed,
@@ -60,11 +68,19 @@ export const NetworkProvider = ({ children }) => {
     if (user) {
       checkNetworkAccess();
     }
-  }, [user]);
+  }, [user, networkConfig]);
+
+  const updateNetworkConfig = (next) => {
+    const merged = { ...networkConfig, ...next };
+    setNetworkConfig(merged);
+    localStorage.setItem('network_config', JSON.stringify(merged));
+  };
 
   const value = {
     networkStatus,
-    checkNetworkAccess
+    checkNetworkAccess,
+    networkConfig,
+    updateNetworkConfig
   };
 
   return (

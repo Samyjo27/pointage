@@ -71,7 +71,7 @@ const AbsenceRequests = () => {
       reason: formData.reason,
       status: 'pending',
       submittedAt: new Date().toISOString(),
-      document: formData.document ? 'document.pdf' : null
+      document: formData.document ? formData.document : null
     };
 
     const allRequests = JSON.parse(localStorage.getItem('timetrack_absences') || '[]');
@@ -345,22 +345,37 @@ const AbsenceRequests = () => {
                   <div className="space-y-2">
                     <Label htmlFor="document" className="text-white">Justificatif (optionnel)</Label>
                     <div className="flex items-center space-x-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-white/20 text-gray-400 hover:bg-white/5"
-                        onClick={() => toast({
-                          title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-                          description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-                        })}
-                      >
+                      <label className="inline-flex items-center px-3 py-2 border rounded-md cursor-pointer border-white/20 text-gray-400 hover:bg-white/5">
                         <Upload className="w-4 h-4 mr-2" />
-                        Télécharger un fichier
-                      </Button>
+                        <span>Sélectionner un fichier</span>
+                        <input
+                          id="document"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0];
+                            if (!file) return;
+                            if (file.size > 5 * 1024 * 1024) {
+                              toast({ variant: 'destructive', title: 'Fichier trop volumineux', description: 'Max 5MB' });
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setFormData(prev => ({ ...prev, document: reader.result }));
+                              toast({ title: 'Fichier ajouté', description: file.name });
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      </label>
                       <span className="text-sm text-gray-400">
                         PDF, JPG, PNG (max 5MB)
                       </span>
                     </div>
+                    {formData.document && (
+                      <p className="text-xs text-green-400">Justificatif prêt à être envoyé.</p>
+                    )}
                   </div>
 
                   <div className="flex space-x-4">
@@ -449,6 +464,18 @@ const AbsenceRequests = () => {
                               <p className="text-gray-400">Motif</p>
                               <p className="text-white">{request.reason}</p>
                             </div>
+                            {request.document && (
+                              <div className="md:col-span-3">
+                                <p className="text-gray-400">Justificatif</p>
+                                <a
+                                  href={request.document}
+                                  download={`justificatif-${request.id}`}
+                                  className="text-blue-400 underline"
+                                >
+                                  Télécharger le justificatif
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -458,10 +485,13 @@ const AbsenceRequests = () => {
                               variant="outline"
                               size="sm"
                               className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                              onClick={() => toast({
-                                title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-                                description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-                              })}
+                              onClick={() => {
+                                const all = JSON.parse(localStorage.getItem('timetrack_absences') || '[]');
+                                const next = all.filter(r => r.id !== request.id);
+                                localStorage.setItem('timetrack_absences', JSON.stringify(next));
+                                setRequests(prev => prev.filter(r => r.id !== request.id));
+                                toast({ title: 'Demande annulée', description: 'Votre demande a été retirée.' });
+                              }}
                             >
                               Annuler
                             </Button>

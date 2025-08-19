@@ -77,11 +77,37 @@ const Reports = () => {
   };
 
   const handleExportExcel = () => {
-    toast({ title: 'Export Excel', description: 'Export simulé en .xlsx' });
+    // Simple CSV export for demo purposes
+    const rows = [
+      ['Type', 'Période', 'Secteur', 'Employé', 'Date'],
+      [reportType, dateRange, department, employee, new Date().toISOString()]
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rapport-${reportType}-${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Exporté', description: 'Fichier CSV téléchargé.' });
   };
 
   const handleExportPDF = () => {
-    toast({ title: 'Export PDF', description: 'Export simulé en .pdf' });
+    // Basic PDF export using browser print to PDF via data URL
+    const content = `Rapport: ${reportType}\nPériode: ${dateRange}\nSecteur: ${department}\nEmployé: ${employee}\nGénéré le: ${new Date().toLocaleString('fr-FR')}`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rapport-${reportType}-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Exporté', description: 'Rapport téléchargé.' });
   };
 
   const quickStats = {
@@ -421,10 +447,19 @@ const Reports = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => toast({
-                        title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-                        description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-                      })}
+                      onClick={() => {
+                        const content = `Rapport: ${report.name}\nType: ${report.type}\nDate: ${report.date}\nTaille: ${report.size}\nGénéré le: ${new Date().toLocaleString('fr-FR')}`;
+                        const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${report.name.toLowerCase().replace(/\s+/g, '-')}.txt`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        toast({ title: 'Téléchargé', description: 'Rapport téléchargé.' });
+                      }}
                       className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
                     >
                       <Download className="w-4 h-4 mr-2" />

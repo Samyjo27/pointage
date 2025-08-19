@@ -151,10 +151,24 @@ const EmployeeManagement = () => {
   };
 
   const handleEditEmployee = (employeeId) => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.jpg,.jpeg,.png';
+    fileInput.onchange = () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      if (file.size > 3 * 1024 * 1024) {
+        toast({ variant: 'destructive', title: 'Image trop volumineuse', description: 'Max 3MB' });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setEmployees(prev => prev.map(emp => emp.id === employeeId ? { ...emp, avatar: reader.result } : emp));
+        toast({ title: 'Photo mise à jour', description: 'La photo de profil a été changée.' });
+      };
+      reader.readAsDataURL(file);
+    };
+    fileInput.click();
   };
 
   const handleDeleteEmployee = (employeeId) => {
@@ -400,7 +414,7 @@ const EmployeeManagement = () => {
                             </span>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
                               <p className="text-gray-400">Email</p>
                               <p className="text-white">{employee.email}</p>
@@ -414,11 +428,6 @@ const EmployeeManagement = () => {
                             <div>
                               <p className="text-gray-400">Secteur</p>
                               <p className="text-white">{employee.department}</p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-gray-400">Salaire horaire</p>
-                              <p className="text-white">{employee.hourlyRate}€/h</p>
                             </div>
                           </div>
                           

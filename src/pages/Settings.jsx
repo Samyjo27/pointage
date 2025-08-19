@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useNetwork } from '@/contexts/NetworkContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -25,12 +26,18 @@ import {
 const Settings = () => {
   const { user, changePassword, MOCK_USERS } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { networkConfig, updateNetworkConfig, networkStatus, checkNetworkAccess } = useNetwork();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     username: '',
     newPassword: '',
     confirmPassword: ''
+  });
+
+  const [networkForm, setNetworkForm] = useState({
+    enforce: networkConfig?.enforce || false,
+    allowed: Array.isArray(networkConfig?.allowed) ? networkConfig.allowed.join(', ') : ''
   });
 
   const handlePasswordChange = () => {
@@ -80,6 +87,16 @@ const Settings = () => {
     });
   };
 
+  const handleSaveNetwork = async () => {
+    const list = (networkForm.allowed || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    updateNetworkConfig({ enforce: !!networkForm.enforce, allowed: list });
+    toast({ title: 'Paramètres réseau enregistrés', description: 'Les restrictions IP ont été mises à jour.' });
+    await checkNetworkAccess();
+  };
+
   return (
     <div className="space-y-6">
       <Helmet>
@@ -105,6 +122,72 @@ const Settings = () => {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* SuperAdmin: Network Restriction */}
+        {user?.role === 'SuperAdmin' && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <Card className={`${isDarkMode ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'} p-6`}>
+              <div className="flex items-center gap-3 mb-6">
+                <Shield className={`h-6 w-6 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
+                <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Réseau local autorisé
+                </h2>
+                <div className={`px-2 py-1 rounded-full text-xs font-medium ${isDarkMode ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                  SuperAdmin
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                    Activer la restriction au réseau local
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setNetworkForm(prev => ({ ...prev, enforce: !prev.enforce }))}
+                    className={`w-12 h-6 rounded-full relative transition-colors ${networkForm.enforce ? 'bg-green-500' : 'bg-gray-500'}`}
+                    aria-pressed={networkForm.enforce}
+                  >
+                    <span className={`absolute top-0.5 ${networkForm.enforce ? 'right-0.5' : 'left-0.5'} w-5 h-5 bg-white rounded-full transition-all`} />
+                  </button>
+                </div>
+
+                <div>
+                  <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                    IP autorisées (séparées par des virgules)
+                  </Label>
+                  <Input
+                    value={networkForm.allowed}
+                    onChange={(e) => setNetworkForm({ ...networkForm, allowed: e.target.value })}
+                    placeholder="192.168.1.100, 192.168.1.101"
+                    className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}
+                  />
+                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Les rôles Admin et SuperAdmin ne sont pas restreints.
+                  </p>
+                </div>
+
+                <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                  <div>IP actuelle: <span className="font-mono">{networkStatus.ip}</span></div>
+                  <div>Statut: <span className={`font-medium ${networkStatus.isAllowed ? 'text-green-500' : 'text-red-500'}`}>{networkStatus.isAllowed ? 'Autorisé' : 'Refusé'}</span></div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveNetwork} className="bg-green-600 hover:bg-green-700">
+                    <Save className="w-4 h-4 mr-2" />
+                    Enregistrer
+                  </Button>
+                  <Button variant="outline" onClick={checkNetworkAccess}>
+                    Vérifier l'accès
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
         {/* Profile Settings */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}

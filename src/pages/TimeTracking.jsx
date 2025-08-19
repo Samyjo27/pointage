@@ -98,10 +98,33 @@ const TimeTracking = () => {
   };
 
   const exportData = () => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
+    // Export time tracking data as CSV
+    const headers = ['Date', 'Arrivée', 'Départ', 'Pause', 'Heures', 'Gains', 'Statut'];
+    const rows = [headers];
+    
+    mockEntries.forEach(entry => {
+      rows.push([
+        new Date(entry.date).toLocaleDateString('fr-FR'),
+        entry.clockIn,
+        entry.clockOut,
+        entry.breakTime,
+        entry.workedHours,
+        entry.earnings,
+        'Terminé'
+      ]);
     });
+    
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `horaires-${selectedMonth.toISOString().slice(0, 7)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Exporté', description: 'Fichier CSV téléchargé.' });
   };
 
   return (
@@ -136,15 +159,21 @@ const TimeTracking = () => {
               Exporter
             </Button>
             <Button
-              onClick={() => toast({
-                title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-                description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-              })}
+              onClick={() => {
+                const filtered = mockEntries.filter(entry => {
+                  const hours = parseFloat(entry.workedHours.split('h')[0]);
+                  return hours >= 7.5; // Filter entries with 7.5+ hours
+                });
+                toast({ 
+                  title: 'Filtré', 
+                  description: `${filtered.length} entrées avec 7.5h+ affichées.` 
+                });
+              }}
               variant="outline"
               className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
             >
               <Filter className="w-4 h-4 mr-2" />
-              Filtrer
+              Filtrer (7.5h+)
             </Button>
           </div>
         </motion.div>

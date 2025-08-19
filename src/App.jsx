@@ -61,7 +61,7 @@ function AppContent() {
           <Route path="/absence-requests" element={<ProtectedRoute element={AbsenceRequests} />} />
           <Route path="/employee-management" element={<ProtectedRoute element={EmployeeManagement} role="Admin" />} />
           <Route path="/department-management" element={<ProtectedRoute element={DepartmentManagement} role="Admin" />} />
-          <Route path="/team-management" element={<ProtectedRoute element={TeamManagement} role="Manager" />} />
+          <Route path="/team-management" element={<ProtectedRoute element={TeamManagement} role="Admin" />} />
           <Route path="/salary-management" element={<ProtectedRoute element={SalaryManagement} role="Admin" />} />
           <Route path="/browser-extension" element={<ProtectedRoute element={BrowserExtension} />} />
           <Route path="/reports" element={<ProtectedRoute element={Reports} role="Admin" />} />
