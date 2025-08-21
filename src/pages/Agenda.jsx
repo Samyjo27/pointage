@@ -72,6 +72,8 @@ const Agenda = () => {
 	};
 
 	const removeNote = (day, noteId) => {
+		// Only SuperAdmin, Admin, Manager can delete notes
+		if (!['SuperAdmin', 'Admin', 'Manager'].includes(user?.role)) return;
 		const key = getKeyForDay(day);
 		const dayNotes = getDayNotes(day).filter(n => n.id !== noteId);
 		const updatedNotes = { ...notes, [key]: dayNotes };
@@ -135,9 +137,11 @@ const Agenda = () => {
 											{getDayNotes(day).map((note) => (
 												<div key={note.id} className={`text-xs p-1 rounded border ${getUrgencyColor(note.urgency)} flex items-center justify-between`}>
 													<span className="truncate">{note.text}</span>
-													<button onClick={() => removeNote(day, note.id)} className="ml-1 text-xs opacity-70 hover:opacity-100">
-														<Trash2 className="w-3 h-3" />
-													</button>
+													{['SuperAdmin','Admin','Manager'].includes(user?.role) && (
+														<button onClick={() => removeNote(day, note.id)} className="ml-1 text-xs opacity-70 hover:opacity-100">
+															<Trash2 className="w-3 h-3" />
+														</button>
+													)}
 												</div>
 											))}
 											{['SuperAdmin','Admin','Manager'].includes(user?.role) && (

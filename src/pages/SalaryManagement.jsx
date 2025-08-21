@@ -466,7 +466,7 @@ const SalaryManagement = () => {
                       Salaire brut
                     </p>
                     <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {calculatedSalary.summary.grossSalary.toFixed(2)}€
+                      {calculatedSalary.summary.grossSalary.toFixed(2)}{currencySymbol(currency)}
                     </p>
                   </div>
 
@@ -475,7 +475,7 @@ const SalaryManagement = () => {
                       Salaire net
                     </p>
                     <p className={`text-2xl font-bold text-green-600`}>
-                      {calculatedSalary.summary.netSalary.toFixed(2)}€
+                      {calculatedSalary.summary.netSalary.toFixed(2)}{currencySymbol(currency)}
                     </p>
                   </div>
 
@@ -484,7 +484,7 @@ const SalaryManagement = () => {
                       Coût total
                     </p>
                     <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {calculatedSalary.summary.totalCost.toFixed(2)}€
+                      {calculatedSalary.summary.totalCost.toFixed(2)}{currencySymbol(currency)}
                     </p>
                   </div>
                 </div>
