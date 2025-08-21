@@ -2,16 +2,19 @@ import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { addNotification } from '@/lib/notifications';
 
 const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 const Agenda = () => {
 	const { isDarkMode } = useTheme();
+	const { user } = useAuth();
 	const [currentDate, setCurrentDate] = useState(new Date());
 	const [selectedDay, setSelectedDay] = useState(null);
 	const [newNote, setNewNote] = useState({ text: '', urgency: 'low' });
@@ -52,6 +55,7 @@ const Agenda = () => {
 
 	const addNote = (day) => {
 		if (!day || !newNote.text.trim()) return;
+		if (!['SuperAdmin', 'Admin', 'Manager'].includes(user?.role)) return;
 		const key = getKeyForDay(day);
 		const dayNotes = getDayNotes(day);
 		const note = {
@@ -64,6 +68,7 @@ const Agenda = () => {
 		setNotes(updatedNotes);
 		localStorage.setItem('agenda_notes', JSON.stringify(updatedNotes));
 		setNewNote({ text: '', urgency: 'low' });
+		addNotification({ title: 'Nouvelle note ajoutée', description: `Note pour le ${day} ${month} (${year})`, route: '/agenda', emoji: '📝', toUserId: user?.id });
 	};
 
 	const removeNote = (day, noteId) => {
@@ -135,13 +140,15 @@ const Agenda = () => {
 													</button>
 												</div>
 											))}
-											<button 
-												onClick={() => setSelectedDay(day)}
-												className="w-full text-xs text-gray-400 hover:text-gray-300 flex items-center justify-center p-1"
-											>
-												<Plus className="w-3 h-3 mr-1" />
-												Ajouter
-											</button>
+											{['SuperAdmin','Admin','Manager'].includes(user?.role) && (
+												<button 
+													onClick={() => setSelectedDay(day)}
+													className="w-full text-xs text-gray-400 hover:text-gray-300 flex items-center justify-center p-1"
+												>
+													<Plus className="w-3 h-3 mr-1" />
+													Ajouter
+												</button>
+											)}
 										</div>
 									)}
 								</div>

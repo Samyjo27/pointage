@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -19,8 +20,20 @@ const pageTransition = {
 
 const DepartmentManagement = () => {
   const { toast } = useToast();
+  const { MOCK_USERS } = useAuth();
   const [departments, setDepartments] = useState(['Direction', 'RH', 'Informatique']);
   const [newDept, setNewDept] = useState('');
+
+  const counts = useMemo(() => {
+    const users = Object.values(MOCK_USERS || {});
+    const map = {};
+    users.forEach(u => {
+      if (u.role === 'Employé' && u.department) {
+        map[u.department] = (map[u.department] || 0) + 1;
+      }
+    });
+    return map;
+  }, [MOCK_USERS]);
 
   const handleAdd = () => {
     if (!newDept.trim()) return;
@@ -53,7 +66,10 @@ const DepartmentManagement = () => {
       </div>
       <ul className="space-y-2">
         {departments.map(d => (
-          <li key={d} className="p-3 rounded border border-white/10 glass-effect text-white">{d}</li>
+          <li key={d} className="p-3 rounded border border-white/10 glass-effect text-white flex items-center justify-between">
+            <span>{d}</span>
+            <span className="text-sm opacity-80">{counts[d] || 0}</span>
+          </li>
         ))}
       </ul>
     </motion.div>

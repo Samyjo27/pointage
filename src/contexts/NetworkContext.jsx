@@ -31,6 +31,14 @@ export const NetworkProvider = ({ children }) => {
   const { toast } = useToast();
 
   // Simulate network checking
+  const ipToInt = (ip) => ip.split('.').reduce((acc, part) => (acc << 8) + (parseInt(part, 10) || 0), 0) >>> 0;
+  const inRange = (ip, range) => {
+    const [start, end] = range.split('-').map(s => s.trim());
+    if (!start || !end) return false;
+    const x = ipToInt(ip);
+    return x >= ipToInt(start) && x <= ipToInt(end);
+  };
+
   const checkNetworkAccess = async () => {
     setNetworkStatus(prev => ({ ...prev, isChecking: true }));
     
@@ -44,7 +52,7 @@ export const NetworkProvider = ({ children }) => {
     
     // Admin/SuperAdmin can access from anywhere
     const isPrivileged = user?.role === 'Admin' || user?.role === 'SuperAdmin';
-    const isAllowed = isPrivileged || !enforce || allowedIPs.includes(currentIP);
+    const isAllowed = isPrivileged || !enforce || allowedIPs.some(entry => entry.includes('-') ? inRange(currentIP, entry) : entry === currentIP);
     
     setNetworkStatus({
       isAllowed,

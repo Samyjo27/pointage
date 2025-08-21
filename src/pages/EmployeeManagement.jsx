@@ -30,7 +30,7 @@ const EmployeeManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newUser, setNewUser] = useState({ username: '', name: '', role: 'Employé', password: '', email: '' });
+  const [newUser, setNewUser] = useState({ username: '', name: '', role: 'Employé', password: '', email: '', department: 'Direction' });
 
   const departments = [
     'Direction', 'RH', 'Informatique', 'Comptabilité', 'Commercial', 
@@ -357,6 +357,19 @@ const EmployeeManagement = () => {
                       <SelectItem value="Admin">Admin</SelectItem>
                       <SelectItem value="Manager">Manager</SelectItem>
                       <SelectItem value="Employé">Employé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-300">Secteur</Label>
+                  <Select value={newUser.department} onValueChange={(v) => setNewUser({ ...newUser, department: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

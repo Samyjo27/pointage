@@ -39,6 +39,8 @@ const SalaryManagement = () => {
   });
   const [calculatedSalary, setCalculatedSalary] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [isEditing, setIsEditing] = useState(false);
+  const [currency, setCurrency] = useState('EUR');
 
   useEffect(() => {
     if (user && (user.role === 'SuperAdmin' || user.role === 'Admin')) {
@@ -84,6 +86,7 @@ const SalaryManagement = () => {
     setSelectedEmployee(employee);
     setSalaryType(employee.salaryType);
     setCalculatedSalary(null);
+    setIsEditing(false);
   };
 
   const filteredEmployees = employees.filter(emp => {
@@ -92,6 +95,19 @@ const SalaryManagement = () => {
   });
 
   const salaryTypes = SalaryCalculator.getSalaryTypes();
+
+  const currencies = [
+    { code: 'EUR', label: 'Euro (€)', symbol: '€' },
+    { code: 'USD', label: 'Dollar US ($)', symbol: '$' },
+    { code: 'CAD', label: 'Dollar canadien (C$)', symbol: 'C$' },
+    { code: 'CHF', label: 'Franc suisse (CHF)', symbol: 'CHF' },
+    { code: 'XAF', label: 'Franc CFA BEAC (XAF)', symbol: 'XAF' },
+    { code: 'XOF', label: 'Franc CFA UEMOA (XOF)', symbol: 'XOF' },
+    { code: 'GHS', label: 'Cedi ghanéen (GHS)', symbol: 'GHS' },
+    { code: 'NGN', label: 'Naira nigérian (NGN)', symbol: 'NGN' },
+  ];
+
+  const currencySymbol = (code) => currencies.find(c => c.code === code)?.symbol || '';
 
   const getSalaryTypeLabel = (type) => {
     const salaryType = salaryTypes.find(st => st.value === type);
@@ -119,7 +135,17 @@ const SalaryManagement = () => {
             Calculez et gérez les salaires avec différents dispositifs
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Select value={currency} onValueChange={setCurrency}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Devise" />
+            </SelectTrigger>
+            <SelectContent>
+              {currencies.map(c => (
+                <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
@@ -208,9 +234,9 @@ const SalaryManagement = () => {
                 <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   Détails de l'employé
                 </h2>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(v => !v)}>
                   <Edit className="h-4 w-4 mr-2" />
-                  Modifier
+                  {isEditing ? 'Terminer' : 'Modifier'}
                 </Button>
               </div>
 
@@ -233,40 +259,64 @@ const SalaryManagement = () => {
                   </p>
                 </div>
 
-                {selectedEmployee.hourlyRate && (
+                {selectedEmployee.hourlyRate && !isEditing && (
                   <div>
                     <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                       Taux horaire
                     </Label>
                     <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedEmployee.hourlyRate}€/h
+                      {selectedEmployee.hourlyRate}{currencySymbol(currency)}/h
                     </p>
                   </div>
                 )}
+                {isEditing && (
+                  <div>
+                    <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      Taux horaire
+                    </Label>
+                    <Input type="number" value={selectedEmployee.hourlyRate || ''} onChange={(e) => setSelectedEmployee({ ...selectedEmployee, hourlyRate: parseFloat(e.target.value) || 0, salaryType: 'hourly' })} className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} />
+                  </div>
+                )}
 
-                {selectedEmployee.monthlySalary && (
+                {selectedEmployee.monthlySalary && !isEditing && (
                   <div>
                     <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                       Salaire mensuel
                     </Label>
                     <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedEmployee.monthlySalary}€
+                      {selectedEmployee.monthlySalary}{currencySymbol(currency)}
                     </p>
                   </div>
                 )}
+                {isEditing && (
+                  <div>
+                    <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      Salaire mensuel
+                    </Label>
+                    <Input type="number" value={selectedEmployee.monthlySalary || ''} onChange={(e) => setSelectedEmployee({ ...selectedEmployee, monthlySalary: parseFloat(e.target.value) || 0, salaryType: 'monthly' })} className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} />
+                  </div>
+                )}
 
-                {selectedEmployee.baseSalary && (
+                {selectedEmployee.baseSalary && !isEditing && (
                   <div>
                     <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                       Salaire de base
                     </Label>
                     <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedEmployee.baseSalary}€
+                      {selectedEmployee.baseSalary}{currencySymbol(currency)}
                     </p>
                   </div>
                 )}
+                {isEditing && (
+                  <div>
+                    <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      Salaire de base
+                    </Label>
+                    <Input type="number" value={selectedEmployee.baseSalary || ''} onChange={(e) => setSelectedEmployee({ ...selectedEmployee, baseSalary: parseFloat(e.target.value) || 0, salaryType: 'fixed' })} className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} />
+                  </div>
+                )}
 
-                {selectedEmployee.commissionRate && (
+                {selectedEmployee.commissionRate && !isEditing && (
                   <div>
                     <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                       Taux de commission
@@ -274,6 +324,14 @@ const SalaryManagement = () => {
                     <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                       {(selectedEmployee.commissionRate * 100).toFixed(1)}%
                     </p>
+                  </div>
+                )}
+                {isEditing && (
+                  <div>
+                    <Label className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      Taux de commission (0-1)
+                    </Label>
+                    <Input type="number" step="0.01" min="0" max="1" value={selectedEmployee.commissionRate || ''} onChange={(e) => setSelectedEmployee({ ...selectedEmployee, commissionRate: parseFloat(e.target.value) || 0, salaryType: 'commission' })} className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} />
                   </div>
                 )}
               </div>

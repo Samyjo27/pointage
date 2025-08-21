@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FolderTree, UploadCloud, Send, Users, Shield, User } from 'lucide-react';
+import { addNotification } from '@/lib/notifications';
 
 // Simple in-memory transfer store persisted in localStorage
 const loadTransfers = () => {
@@ -83,6 +84,9 @@ const Transfers = () => {
     setTransfers(next);
     saveTransfers(next);
     toast({ title: 'Transfert envoyé', description: `${fileMeta.name} → ${targetUser.name}` });
+    // Notify sender and receiver
+    addNotification({ title: 'Fichier envoyé', description: `${fileMeta.name} à ${targetUser.name}`, route: '/transfers', emoji: '✅', toUserId: user.id });
+    addNotification({ title: 'Nouveau fichier reçu', description: `${fileMeta.name} de ${user.name}`, route: '/transfers', emoji: '📦', toUserId: targetUser.id });
     setFileDataUrl('');
     setFileMeta({ name: '', size: 0, type: '' });
   };

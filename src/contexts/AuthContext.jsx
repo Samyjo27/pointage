@@ -177,7 +177,7 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: "Seul le SuperAdmin peut créer des utilisateurs." };
     }
 
-    const { username, name, role, password, email } = newUser || {};
+    const { username, name, role, password, email, department } = newUser || {};
     if (!username || !name || !role || !password) {
       return { success: false, message: "Champs requis manquants." };
     }
@@ -193,6 +193,7 @@ export const AuthProvider = ({ children }) => {
       role,
       password,
       email: email || `${username}@example.com`,
+      ...(department ? { department } : {}),
       ...(role === 'Employé' ? { hourlyRate: 10, salaryType: 'hourly' } : {})
     };
 
