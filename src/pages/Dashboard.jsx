@@ -22,9 +22,14 @@ const Dashboard = () => {
 
   const visibleEmployees = useMemo(() => {
     if (!user) return [];
-    if (user.role === 'Manager') {
-      return getTeamMembers(user.id);
+    if (user.role === 'Employé') {
+      return [user];
     }
+    if (user.role === 'Manager') {
+      // Only names of team members
+      return getTeamMembers(user.id).map(m => ({ id: m.id, name: m.name, teamName: m.teamName }));
+    }
+    // Admin and SuperAdmin: all employees
     return Object.values(MOCK_USERS).filter(u => u.role === 'Employé');
   }, [user, getTeamMembers, MOCK_USERS]);
 
@@ -45,14 +50,16 @@ const Dashboard = () => {
 
       <Card className="glass-effect border-white/10">
         <CardHeader>
-          <CardTitle className="text-white">Équipe visible</CardTitle>
+          <CardTitle className="text-white">{user.role === 'Employé' ? 'Vos informations' : 'Équipe visible'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {visibleEmployees.map(emp => (
               <div key={emp.id} className="p-4 rounded-lg border border-white/10 glass-effect">
                 <p className="text-white font-medium">{emp.name}</p>
-                <p className="text-gray-400 text-sm">{emp.teamName || '—'}</p>
+                {user.role !== 'Employé' && (
+                  <p className="text-gray-400 text-sm">{emp.teamName || '—'}</p>
+                )}
               </div>
             ))}
             {visibleEmployees.length === 0 && (

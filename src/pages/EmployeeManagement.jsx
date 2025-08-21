@@ -214,13 +214,15 @@ const EmployeeManagement = () => {
             </p>
           </div>
 
-          <Button
-            onClick={handleAddEmployee}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter un employé
-          </Button>
+          {user.role === 'SuperAdmin' && (
+            <Button
+              onClick={handleAddEmployee}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un employé
+            </Button>
+          )}
         </motion.div>
 
         {/* Stats Cards */}

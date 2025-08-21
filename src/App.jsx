@@ -19,6 +19,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { NetworkProvider } from '@/contexts/NetworkContext';
 import Agenda from '@/pages/Agenda.jsx';
+import Transfers from '@/pages/Transfers.jsx';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 function App() {
@@ -65,6 +66,7 @@ function AppContent() {
           <Route path="/salary-management" element={<ProtectedRoute element={SalaryManagement} role="Admin" />} />
           <Route path="/browser-extension" element={<ProtectedRoute element={BrowserExtension} />} />
           <Route path="/reports" element={<ProtectedRoute element={Reports} role="Admin" />} />
+          <Route path="/transfers" element={<ProtectedRoute element={Transfers} />} />
           <Route path="/agenda" element={<ProtectedRoute element={Agenda} />} />
           <Route path="/settings" element={<ProtectedRoute element={Settings} />} />
         </Routes>

@@ -38,13 +38,13 @@ const navItems = [
     icon: Clock, 
     label: 'Mes horaires', 
     path: '/my-hours', 
-    roles: ['Employé'] 
+    roles: ['Employé', 'Manager'] 
   },
   { 
     icon: Fingerprint, 
     label: 'Pointage', 
     path: '/clocking', 
-    roles: ['Employé'] 
+    roles: ['Employé', 'Manager'] 
   },
   { 
     icon: Calendar, 
@@ -74,7 +74,7 @@ const navItems = [
     icon: UserCheck, 
     label: 'Gestion d\'équipe', 
     path: '/team-management', 
-    roles: ['SuperAdmin', 'Admin'] 
+    roles: ['Admin'] 
   },
   { 
     icon: DollarSign, 
@@ -92,7 +92,7 @@ const navItems = [
     icon: FileText, 
     label: 'Export / Rapports', 
     path: '/reports', 
-    roles: ['SuperAdmin', 'Admin', 'Manager'] 
+    roles: ['SuperAdmin', 'Admin'] 
   },
   { 
     icon: Bell, 
@@ -105,6 +105,12 @@ const navItems = [
     label: 'Paramètres / Profil', 
     path: '/settings', 
     roles: ['SuperAdmin', 'Admin', 'Manager', 'Employé'] 
+  },
+  {
+    icon: FileText,
+    label: 'Transferts',
+    path: '/transfers',
+    roles: ['SuperAdmin', 'Admin', 'Manager', 'Employé']
   },
 ];
 

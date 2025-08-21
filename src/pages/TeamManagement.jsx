@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Users, 
   Clock, 
@@ -20,20 +21,39 @@ import {
 } from 'lucide-react';
 
 const TeamManagement = () => {
-  const { user, getTeamMembers } = useAuth();
+  const { user, getTeamMembers, getTeams, MOCK_USERS } = useAuth();
   const { isDarkMode } = useTheme();
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [selectedTeamId, setSelectedTeamId] = useState('');
+  const teams = useMemo(() => getTeams ? getTeams() : [], [getTeams]);
 
   useEffect(() => {
-    if (user && user.role === 'Manager') {
+    if (!user) return;
+    if (user.role === 'Manager') {
       const members = getTeamMembers(user.id);
       setTeamMembers(members);
       setLoading(false);
+    } else if (user.role === 'Admin' || user.role === 'SuperAdmin') {
+      const firstTeam = teams[0]?.id || '';
+      setSelectedTeamId(firstTeam);
+      if (firstTeam) {
+        const team = teams.find(t => t.id === firstTeam);
+        const members = (team?.members || []).map(id => Object.values(MOCK_USERS).find(u => u.id === id)).filter(Boolean);
+        setTeamMembers(members);
+      }
+      setLoading(false);
     }
-  }, [user, getTeamMembers]);
+  }, [user, getTeamMembers, teams, MOCK_USERS]);
+
+  useEffect(() => {
+    if (!selectedTeamId || !(user?.role === 'Admin' || user?.role === 'SuperAdmin')) return;
+    const team = teams.find(t => t.id === selectedTeamId);
+    const members = (team?.members || []).map(id => Object.values(MOCK_USERS).find(u => u.id === id)).filter(Boolean);
+    setTeamMembers(members);
+  }, [selectedTeamId, teams, MOCK_USERS, user]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -89,18 +109,30 @@ const TeamManagement = () => {
             Gestion d'équipe
           </h1>
           <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Gérez votre équipe : {user?.teamName}
+            {user?.role === 'Manager' ? `Gérez votre équipe : ${user?.teamName}` : 'Administration des équipes'}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Eye className="h-4 w-4 mr-2" />
-            Voir les rapports
-          </Button>
-          <Button variant="outline" size="sm">
-            <Edit className="h-4 w-4 mr-2" />
-            Modifier l'équipe
-          </Button>
+          {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
+            <div className="w-64">
+              <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une équipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier l'équipe
+            </Button>
+          )}
         </div>
       </motion.div>
 
