@@ -21,8 +21,10 @@ import {
   Upload
 } from 'lucide-react';
 
+import { addNotification } from '@/lib/notifications';
+
 const AbsenceRequests = () => {
-  const { user } = useAuth();
+  const { user, MOCK_USERS } = useAuth();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [requests, setRequests] = useState([]);
@@ -62,9 +64,19 @@ const AbsenceRequests = () => {
       return;
     }
 
+    // Determine recipient according to role routing
+    let recipientId = null;
+    if (user.role === 'Employé' && user.managerId) {
+      recipientId = user.managerId;
+    } else if (user.role === 'Manager') {
+      const admins = Object.values(MOCK_USERS || {}).filter(u => u.role === 'Admin');
+      recipientId = admins[0]?.id || null;
+    }
+
     const newRequest = {
       id: Date.now(),
       userId: user.id,
+      recipientId,
       type: formData.type,
       startDate: formData.startDate,
       endDate: formData.endDate,
@@ -88,9 +100,20 @@ const AbsenceRequests = () => {
     });
     setShowForm(false);
 
+    // Notify recipient if applicable
+    if (recipientId) {
+      addNotification({
+        title: "Nouvelle demande d'absence",
+        description: `${user.name} a soumis une demande (${formData.type})`,
+        route: '/absence-requests',
+        emoji: '🗓️',
+        toUserId: recipientId
+      });
+    }
+
     toast({
       title: "Demande envoyée",
-      description: "Votre demande d'absence a été soumise avec succès",
+      description: recipientId ? "Votre demande a été transmise à votre supérieur." : "Votre demande a été soumise.",
       className: "success-gradient text-white"
     });
   };

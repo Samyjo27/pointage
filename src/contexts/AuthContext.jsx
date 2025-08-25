@@ -1,5 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { addNotification } from '@/lib/notifications';
 
 const AuthContext = createContext(null);
 
@@ -168,6 +169,9 @@ export const AuthProvider = ({ children }) => {
       } catch {}
       localStorage.setItem('timeTrackUser', JSON.stringify(foundUser));
       setUser(foundUser);
+      try {
+        addNotification({ title: 'Connexion réussie', description: `Bienvenue ${foundUser.name}`, route: '/', emoji: '👋', toUserId: foundUser.id });
+      } catch {}
       return { success: true };
     }
     return { success: false, message: "Nom d'utilisateur ou mot de passe incorrect." };

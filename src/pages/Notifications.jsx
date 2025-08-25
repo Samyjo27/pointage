@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getNotificationsFor, markAsRead } from '@/lib/notifications';
+import { getNotificationsFor, markAsRead, addNotification } from '@/lib/notifications';
 import { useNavigate } from 'react-router-dom';
 
 const Notifications = () => {
@@ -20,6 +20,13 @@ const Notifications = () => {
     return () => window.removeEventListener('storage', handler);
   }, [user]);
 
+  // Demo: let users send themselves a test notification for any purpose
+  const sendTest = () => {
+    if (!user) return;
+    addNotification({ title: 'Notification de test', description: 'Ceci est un message de démonstration 🔔', route: '/notifications', emoji: '🔔', toUserId: user.id });
+    setItems(getNotificationsFor(user.id));
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <Helmet>
@@ -31,6 +38,9 @@ const Notifications = () => {
           <CardTitle className="text-white flex items-center gap-2"><Bell className="w-5 h-5" /> Flux</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-3">
+            <button onClick={sendTest} className="px-3 py-2 text-sm rounded border border-white/20 text-gray-300 hover:bg-white/5">Envoyer une notification de test</button>
+          </div>
           <div className="space-y-3">
             {items.map(n => (
               <button key={n.id} onClick={() => { if (n.route) navigate(n.route); markAsRead(n.id); }} className="w-full text-left p-3 rounded-lg border border-white/10 glass-effect hover:bg-white/5">
