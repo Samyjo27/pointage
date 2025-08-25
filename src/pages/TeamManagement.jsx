@@ -28,6 +28,8 @@ const TeamManagement = () => {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [selectedTeamId, setSelectedTeamId] = useState('');
+  const [viewModal, setViewModal] = useState(null);
+  const [editModal, setEditModal] = useState(null);
   const teams = useMemo(() => getTeams ? getTeams() : [], [getTeams]);
 
   useEffect(() => {
@@ -310,11 +312,11 @@ const TeamManagement = () => {
                 )}
 
                 <div className="flex gap-2 pt-3">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setViewModal(member)}>
                     <Eye className="h-4 w-4 mr-1" />
                     Voir détails
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setEditModal({ ...member })}>
                     <Edit className="h-4 w-4 mr-1" />
                     Modifier
                   </Button>
@@ -324,6 +326,54 @@ const TeamManagement = () => {
           </motion.div>
         ))}
       </motion.div>
+
+      {viewModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setViewModal(null)}>
+          <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 w-full max-w-lg`} onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4">
+              <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Détails du membre</h3>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{viewModal.name} • {viewModal.email}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Type salaire</div>
+              <div className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{viewModal.salaryType}</div>
+              {viewModal.hourlyRate && <><div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Taux horaire</div><div className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{viewModal.hourlyRate}€/h</div></>}
+              {viewModal.monthlySalary && <><div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mensuel</div><div className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{viewModal.monthlySalary}€</div></>}
+            </div>
+            <div className="mt-4">
+              <Button onClick={() => setViewModal(null)} className="w-full">Fermer</Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {editModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setEditModal(null)}>
+          <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 w-full max-w-lg`} onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4">
+              <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Modifier le membre</h3>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>Nom</label>
+                <input value={editModal.name} onChange={(e) => setEditModal({ ...editModal, name: e.target.value })} className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} w-full px-3 py-2 rounded border`} />
+              </div>
+              <div>
+                <label className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>Statut</label>
+                <select value={editModal.status || 'present'} onChange={(e) => setEditModal({ ...editModal, status: e.target.value })} className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} w-full px-3 py-2 rounded border`}>
+                  <option value="present">Présent</option>
+                  <option value="late">En retard</option>
+                  <option value="absent">Absent</option>
+                </select>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button onClick={() => { setTeamMembers(prev => prev.map(m => m.id === editModal.id ? { ...m, name: editModal.name, status: editModal.status } : m)); setEditModal(null); toast({ title: 'Membre mis à jour' }); }} className="flex-1">Enregistrer</Button>
+              <Button variant="outline" onClick={() => setEditModal(null)} className="flex-1">Annuler</Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {filteredMembers.length === 0 && (
         <motion.div

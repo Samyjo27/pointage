@@ -146,32 +146,6 @@ const SalaryManagement = () => {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={() => {
-            const content = JSON.stringify({ employee: selectedEmployee?.name || 'N/A', currency, result: calculatedSalary }, null, 2);
-            const blob = new Blob([content], { type: 'application/json;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `salaire-${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }}>
-            <Download className="h-4 w-4 mr-2" />
-            Exporter
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => {
-            const next = prompt('Configurer un pourcentage de charge patronale additionnelle (ex: 5 pour 5%)', '0');
-            if (next === null) return;
-            const extra = parseFloat(next);
-            if (!isNaN(extra) && calculatedSalary) {
-              const bump = calculatedSalary.summary.totalCost * (extra / 100);
-              setCalculatedSalary({ ...calculatedSalary, summary: { ...calculatedSalary.summary, totalCost: calculatedSalary.summary.totalCost + bump } });
-          }}}>
-            <Settings className="h-4 w-4 mr-2" />
-            Configuration
-          </Button>
         </div>
       </motion.div>
 
