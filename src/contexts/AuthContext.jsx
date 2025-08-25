@@ -153,7 +153,14 @@ export const AuthProvider = ({ children }) => {
         if (enforce && foundUser.role !== 'SuperAdmin' && foundUser.role !== 'Admin') {
           const currentIP = '192.168.1.100'; // Replace with real IP retrieval in production
           const allowed = Array.isArray(cfg.allowed) ? cfg.allowed : [];
-          const ok = allowed.includes(currentIP);
+          const ipToInt = (ip) => ip.split('.').reduce((acc, part) => (acc << 8) + (parseInt(part, 10) || 0), 0) >>> 0;
+          const inRange = (ip, range) => {
+            const [start, end] = String(range).split('-').map(s => s.trim());
+            if (!start || !end) return false;
+            const x = ipToInt(ip);
+            return x >= ipToInt(start) && x <= ipToInt(end);
+          };
+          const ok = allowed.some(entry => String(entry).includes('-') ? inRange(currentIP, entry) : String(entry).trim() === currentIP);
           if (!ok) {
             return { success: false, message: "Accès refusé: connexion hors du réseau autorisé." };
           }

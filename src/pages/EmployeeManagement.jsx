@@ -35,6 +35,13 @@ const EmployeeManagement = () => {
 
   const [departments, setDepartments] = useState(getDepartments());
 
+  useEffect(() => {
+    const refresh = () => setDepartments(getDepartments());
+    // Update when storage changes in another tab
+    window.addEventListener('storage', refresh);
+    return () => window.removeEventListener('storage', refresh);
+  }, []);
+
   const mockEmployees = [
     {
       id: 1,

@@ -61,7 +61,10 @@ const Settings = () => {
   };
 
   const handleSaveNetwork = async () => {
-    const list = (networkForm.allowed || '').split(',').map(s => s.trim()).filter(Boolean);
+    const list = (networkForm.allowed || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
     updateNetworkConfig({ enforce: !!networkForm.enforce, allowed: list });
     toast({ title: 'Paramètres réseau enregistrés', description: 'Les restrictions IP ont été mises à jour.' });
     await checkNetworkAccess();
