@@ -34,6 +34,7 @@ const EmployeeManagement = () => {
   const [newUser, setNewUser] = useState({ username: '', name: '', role: 'Employé', password: '', email: '', department: 'Direction' });
 
   const [departments, setDepartments] = useState(getDepartments());
+  const [editModal, setEditModal] = useState(null);
 
   useEffect(() => {
     const refresh = () => setDepartments(getDepartments());
@@ -157,11 +158,32 @@ const EmployeeManagement = () => {
   const handleEditEmployee = (employeeId) => {
     const emp = employees.find(e => e.id === employeeId);
     if (!emp) return;
-    const newName = prompt('Nouveau nom complet:', emp.name);
-    if (newName && newName.trim()) {
-      setEmployees(prev => prev.map(e => e.id === employeeId ? { ...e, name: newName.trim() } : e));
-      toast({ title: 'Profil mis à jour' });
-    }
+    setEditModal({ ...emp });
+  };
+
+  const handleEditAvatar = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.jpg,.jpeg,.png';
+    fileInput.onchange = () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      if (file.size > 3 * 1024 * 1024) {
+        toast({ variant: 'destructive', title: 'Image trop volumineuse', description: 'Max 3MB' });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => setEditModal(prev => prev ? { ...prev, avatar: reader.result } : prev);
+      reader.readAsDataURL(file);
+    };
+    fileInput.click();
+  };
+
+  const handleSaveEdit = () => {
+    if (!editModal) return;
+    setEmployees(prev => prev.map(e => e.id === editModal.id ? { ...e, name: editModal.name, role: editModal.role, department: editModal.department, avatar: editModal.avatar } : e));
+    toast({ title: 'Profil mis à jour' });
+    setEditModal(null);
   };
 
   const handleDeleteEmployee = (employeeId) => {
@@ -493,6 +515,58 @@ const EmployeeManagement = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {editModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setEditModal(null)}>
+          <Card className="glass-effect border-white/10 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <CardHeader>
+              <CardTitle className="text-white">Modifier le profil</CardTitle>
+              <CardDescription className="text-gray-400">Photo, nom, rôle et secteur</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <img src={editModal.avatar} alt={editModal.name} className="w-14 h-14 rounded-full object-cover border-2 border-blue-500/30" />
+                <Button variant="outline" size="sm" onClick={handleEditAvatar}>Changer la photo</Button>
+              </div>
+              <div>
+                <Label className="text-gray-300">Nom complet</Label>
+                <Input value={editModal.name} onChange={(e) => setEditModal({ ...editModal, name: e.target.value })} className="bg-white/5 border-white/20 text-white" />
+              </div>
+              <div>
+                <Label className="text-gray-300">Rôle</Label>
+                <Select value={editModal.role} onValueChange={(v) => setEditModal({ ...editModal, role: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrateur</SelectItem>
+                    <SelectItem value="hr">RH</SelectItem>
+                    <SelectItem value="employee">Employé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-gray-300">Secteur</Label>
+                <Select value={editModal.department} onValueChange={(v) => setEditModal({ ...editModal, department: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveEdit} className="flex-1">Enregistrer</Button>
+                <Button variant="outline" onClick={() => setEditModal(null)} className="flex-1">Annuler</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </>
   );
 };
