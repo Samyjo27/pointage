@@ -40,7 +40,16 @@ const AbsenceRequests = () => {
   const loadAll = () => {
     const savedRequests = JSON.parse(localStorage.getItem('timetrack_absences') || '[]');
     setRequests(savedRequests.filter(req => req.userId === user.id));
-    setInbox(savedRequests.filter(req => req.recipientId === user.id && req.status === 'pending'));
+    
+    // For managers: show requests that need to be transferred to admin
+    // For admins: show requests that need approval
+    if (user.role === 'Manager') {
+      setInbox(savedRequests.filter(req => req.recipientId === user.id && req.status === 'pending'));
+    } else if (user.role === 'Admin' || user.role === 'SuperAdmin') {
+      setInbox(savedRequests.filter(req => req.recipientId === user.id && req.status === 'pending'));
+    } else {
+      setInbox([]);
+    }
   };
 
   useEffect(() => {
@@ -84,6 +93,7 @@ const AbsenceRequests = () => {
       id: Date.now(),
       userId: user.id,
       recipientId,
+      employeeName: user.name,
       type: formData.type,
       startDate: formData.startDate,
       endDate: formData.endDate,
@@ -210,6 +220,48 @@ const AbsenceRequests = () => {
         toUserId: req.userId
       });
     } catch {}
+  };
+
+  const transferToAdmin = (requestId) => {
+    const all = JSON.parse(localStorage.getItem('timetrack_absences') || '[]');
+    const idx = all.findIndex(r => r.id === requestId);
+    if (idx === -1) return;
+    
+    const req = all[idx];
+    const admins = Object.values(MOCK_USERS || {}).filter(u => u.role === 'Admin');
+    const adminId = admins[0]?.id;
+    
+    if (!adminId) {
+      toast({ title: "Erreur", description: "Aucun admin disponible", variant: "destructive" });
+      return;
+    }
+    
+    // Transfer to admin
+    all[idx] = { 
+      ...req, 
+      recipientId: adminId,
+      transferredAt: new Date().toISOString(),
+      transferredBy: user.id
+    };
+    
+    localStorage.setItem('timetrack_absences', JSON.stringify(all));
+    setInbox(prev => prev.filter(r => r.id !== requestId));
+    
+    // Notify admin
+    try {
+      addNotification({
+        title: "Demande transférée",
+        description: `Demande d'absence de ${req.employeeName || 'un employé'} transférée par ${user.name}`,
+        route: '/absence-requests',
+        emoji: '📤',
+        toUserId: adminId
+      });
+    } catch {}
+    
+    toast({ 
+      title: "Demande transférée", 
+      description: "La demande a été transférée à l'admin pour validation" 
+    });
   };
 
   return (
@@ -565,12 +617,21 @@ const AbsenceRequests = () => {
           >
             <Card className="glass-effect border-white/10 mt-6">
               <CardHeader>
-                <CardTitle className="text-white">Demandes reçues</CardTitle>
-                <CardDescription className="text-gray-400">Validez ou refusez les demandes en attente</CardDescription>
+                <CardTitle className="text-white">
+                  {user.role === 'Manager' ? 'Demandes à transférer' : 'Demandes reçues'}
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  {user.role === 'Manager' 
+                    ? 'Transférez les demandes à l\'admin pour validation' 
+                    : 'Validez ou refusez les demandes en attente'
+                  }
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {inbox.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">Aucune demande en attente</div>
+                  <div className="text-center py-8 text-gray-400">
+                    {user.role === 'Manager' ? 'Aucune demande à transférer' : 'Aucune demande en attente'}
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {inbox.map(req => (
@@ -580,10 +641,27 @@ const AbsenceRequests = () => {
                             <div className="text-white font-medium">{getTypeLabel(req.type)}</div>
                             <div className="text-gray-400 text-sm">{new Date(req.startDate).toLocaleDateString('fr-FR')} → {new Date(req.endDate).toLocaleDateString('fr-FR')}</div>
                             <div className="text-gray-500 text-xs">Motif: {req.reason}</div>
+                            {req.transferredAt && (
+                              <div className="text-blue-400 text-xs mt-1">
+                                Transférée le {new Date(req.transferredAt).toLocaleDateString('fr-FR')}
+                              </div>
+                            )}
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => approveOrReject(req.id, 'approved')}>Autoriser</Button>
-                            <Button size="sm" variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => approveOrReject(req.id, 'rejected')}>Refuser</Button>
+                            {user.role === 'Manager' ? (
+                              <Button 
+                                size="sm" 
+                                className="bg-blue-600 hover:bg-blue-700" 
+                                onClick={() => transferToAdmin(req.id)}
+                              >
+                                Transférer à l'admin
+                              </Button>
+                            ) : (
+                              <>
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => approveOrReject(req.id, 'approved')}>Autoriser</Button>
+                                <Button size="sm" variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => approveOrReject(req.id, 'rejected')}>Refuser</Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
