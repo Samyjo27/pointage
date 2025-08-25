@@ -22,6 +22,7 @@ import {
   Clock,
   DollarSign
 } from 'lucide-react';
+import { getDepartments } from '@/lib/departments';
 
 const EmployeeManagement = () => {
   const { user, createUser } = useAuth();
@@ -32,11 +33,7 @@ const EmployeeManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUser, setNewUser] = useState({ username: '', name: '', role: 'Employé', password: '', email: '', department: 'Direction' });
 
-  const departments = [
-    'Direction', 'RH', 'Informatique', 'Comptabilité', 'Commercial', 
-    'Marketing', 'Logistique', 'Production', 'Support', 'Maintenance',
-    'Sécurité', 'Juridique', 'Accueil'
-  ];
+  const [departments, setDepartments] = useState(getDepartments());
 
   const mockEmployees = [
     {
@@ -172,17 +169,14 @@ const EmployeeManagement = () => {
   };
 
   const handleDeleteEmployee = (employeeId) => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    setEmployees(prev => prev.filter(e => e.id !== employeeId));
+    toast({ title: 'Employé supprimé' });
   };
 
   const handleViewDetails = (employeeId) => {
-    toast({
-      title: "🚧 Cette fonctionnalité n'est pas encore implémentée",
-      description: "Mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀"
-    });
+    const emp = employees.find(e => e.id === employeeId);
+    if (!emp) return;
+    toast({ title: emp.name, description: `${emp.email} • ${getRoleLabel(emp.role)} • ${emp.department}` });
   };
 
   const stats = {
@@ -215,13 +209,13 @@ const EmployeeManagement = () => {
           </div>
 
           {user.role === 'SuperAdmin' && (
-            <Button
-              onClick={handleAddEmployee}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un employé
-            </Button>
+          <Button
+            onClick={handleAddEmployee}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter un employé
+          </Button>
           )}
         </motion.div>
 
