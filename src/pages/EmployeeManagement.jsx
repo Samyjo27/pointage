@@ -155,24 +155,13 @@ const EmployeeManagement = () => {
   };
 
   const handleEditEmployee = (employeeId) => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.jpg,.jpeg,.png';
-    fileInput.onchange = () => {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return;
-      if (file.size > 3 * 1024 * 1024) {
-        toast({ variant: 'destructive', title: 'Image trop volumineuse', description: 'Max 3MB' });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        setEmployees(prev => prev.map(emp => emp.id === employeeId ? { ...emp, avatar: reader.result } : emp));
-        toast({ title: 'Photo mise à jour', description: 'La photo de profil a été changée.' });
-      };
-      reader.readAsDataURL(file);
-    };
-    fileInput.click();
+    const emp = employees.find(e => e.id === employeeId);
+    if (!emp) return;
+    const newName = prompt('Nouveau nom complet:', emp.name);
+    if (newName && newName.trim()) {
+      setEmployees(prev => prev.map(e => e.id === employeeId ? { ...e, name: newName.trim() } : e));
+      toast({ title: 'Profil mis à jour' });
+    }
   };
 
   const handleDeleteEmployee = (employeeId) => {
@@ -477,7 +466,7 @@ const EmployeeManagement = () => {
                           <Edit className="w-4 h-4" />
                         </Button>
                         
-                        {user.role === 'admin' && (
+                        {user.role !== 'Employé' && (
                           <Button
                             variant="outline"
                             size="sm"

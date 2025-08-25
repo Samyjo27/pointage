@@ -18,6 +18,7 @@ const Agenda = () => {
 	const [currentDate, setCurrentDate] = useState(new Date());
 	const [selectedDay, setSelectedDay] = useState(null);
 	const [newNote, setNewNote] = useState({ text: '', urgency: 'low' });
+	const [viewNote, setViewNote] = useState(null);
 
 	const { year, month, weeks } = useMemo(() => {
 		const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -136,10 +137,14 @@ const Agenda = () => {
 										<div className="space-y-1">
 											{getDayNotes(day).map((note) => (
 												<div key={note.id} className={`text-xs p-1 rounded border ${getUrgencyColor(note.urgency)} flex items-center justify-between`}>
-													<span className="truncate">{note.text}</span>
-													<button onClick={() => removeNote(day, note.id)} className="ml-1 text-xs opacity-70 hover:opacity-100">
-														<Trash2 className="w-3 h-3" />
+													<button onClick={() => setViewNote({ day, month, year, note })} className="truncate text-left flex-1">
+														{note.text}
 													</button>
+													{['SuperAdmin','Admin','Manager'].includes(user?.role) && (
+														<button onClick={() => removeNote(day, note.id)} className="ml-1 text-xs opacity-70 hover:opacity-100">
+															<Trash2 className="w-3 h-3" />
+														</button>
+													)}
 												</div>
 											))}
 											{['SuperAdmin','Admin','Manager'].includes(user?.role) && (
@@ -206,6 +211,34 @@ const Agenda = () => {
 								<Button onClick={() => addNote(selectedDay)} className="flex-1">Ajouter</Button>
 								<Button variant="outline" onClick={() => setSelectedDay(null)}>Annuler</Button>
 							</div>
+						</div>
+					</Card>
+				</motion.div>
+			)}
+
+			{/* View Note Modal (read-only) */}
+			{viewNote && (
+				<motion.div 
+					initial={{ opacity: 0 }} 
+					animate={{ opacity: 1 }} 
+					className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+					onClick={() => setViewNote(null)}
+				>
+					<Card 
+						className={`p-6 w-96 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+						onClick={(e) => e.stopPropagation()}
+					>
+						<h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+							Note du {viewNote.day} {viewNote.month} {viewNote.year}
+						</h3>
+						<div className="space-y-2 text-sm">
+							<div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Contenu:</div>
+							<div className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{viewNote.note.text}</div>
+							<div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Urgence: {viewNote.note.urgency}</div>
+							<div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Ajouté le {new Date(viewNote.note.createdAt).toLocaleString('fr-FR')}</div>
+						</div>
+						<div className="mt-4">
+							<Button onClick={() => setViewNote(null)} className="w-full">Fermer</Button>
 						</div>
 					</Card>
 				</motion.div>
