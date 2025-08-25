@@ -27,7 +27,8 @@ const AbsenceRequests = () => {
   const { user, MOCK_USERS } = useAuth();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
-  const [requests, setRequests] = useState([]);
+  const [requests, setRequests] = useState([]); // my submitted
+  const [inbox, setInbox] = useState([]); // assigned to me (manager/admin)
   const [formData, setFormData] = useState({
     type: '',
     startDate: '',
@@ -36,11 +37,17 @@ const AbsenceRequests = () => {
     document: null
   });
 
-  useEffect(() => {
-    // Load absence requests from localStorage
+  const loadAll = () => {
     const savedRequests = JSON.parse(localStorage.getItem('timetrack_absences') || '[]');
-    const userRequests = savedRequests.filter(req => req.userId === user.id);
-    setRequests(userRequests);
+    setRequests(savedRequests.filter(req => req.userId === user.id));
+    setInbox(savedRequests.filter(req => req.recipientId === user.id && req.status === 'pending'));
+  };
+
+  useEffect(() => {
+    loadAll();
+    const onStorage = () => loadAll();
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, [user.id]);
 
   const absenceTypes = [
@@ -183,6 +190,27 @@ const AbsenceRequests = () => {
   const allRequests = [...requests, ...mockRequests].sort((a, b) => 
     new Date(b.submittedAt) - new Date(a.submittedAt)
   );
+
+  const approveOrReject = (requestId, nextStatus) => {
+    const all = JSON.parse(localStorage.getItem('timetrack_absences') || '[]');
+    const idx = all.findIndex(r => r.id === requestId);
+    if (idx === -1) return;
+    const req = all[idx];
+    all[idx] = { ...req, status: nextStatus, decidedAt: new Date().toISOString(), decidedBy: user.id };
+    localStorage.setItem('timetrack_absences', JSON.stringify(all));
+    setInbox(prev => prev.filter(r => r.id !== requestId));
+    toast({ title: nextStatus === 'approved' ? 'Demande approuvée' : 'Demande refusée' });
+    try {
+      const { addNotification } = require('@/lib/notifications');
+      addNotification({
+        title: nextStatus === 'approved' ? 'Absence approuvée' : 'Absence refusée',
+        description: `${getTypeLabel(req.type)} du ${new Date(req.startDate).toLocaleDateString('fr-FR')} au ${new Date(req.endDate).toLocaleDateString('fr-FR')}`,
+        route: '/absence-requests',
+        emoji: nextStatus === 'approved' ? '✅' : '❌',
+        toUserId: req.userId
+      });
+    } catch {}
+  };
 
   return (
     <>
@@ -528,6 +556,44 @@ const AbsenceRequests = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {(user.role === 'Manager' || user.role === 'Admin' || user.role === 'SuperAdmin') && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+          >
+            <Card className="glass-effect border-white/10 mt-6">
+              <CardHeader>
+                <CardTitle className="text-white">Demandes reçues</CardTitle>
+                <CardDescription className="text-gray-400">Validez ou refusez les demandes en attente</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {inbox.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">Aucune demande en attente</div>
+                ) : (
+                  <div className="space-y-3">
+                    {inbox.map(req => (
+                      <div key={req.id} className="p-4 rounded-lg border border-white/10 glass-effect">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-white font-medium">{getTypeLabel(req.type)}</div>
+                            <div className="text-gray-400 text-sm">{new Date(req.startDate).toLocaleDateString('fr-FR')} → {new Date(req.endDate).toLocaleDateString('fr-FR')}</div>
+                            <div className="text-gray-500 text-xs">Motif: {req.reason}</div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => approveOrReject(req.id, 'approved')}>Autoriser</Button>
+                            <Button size="sm" variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => approveOrReject(req.id, 'rejected')}>Refuser</Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     </>
   );
