@@ -20,7 +20,8 @@ import {
   UserCheck,
   DollarSign,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Inbox
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,6 +58,12 @@ const navItems = [
     label: 'Demandes d\'absence', 
     path: '/absence-requests', 
     roles: ['Employé', 'Manager'] 
+  },
+  { 
+    icon: Inbox, 
+    label: 'Réception de demandes', 
+    path: '/absence-requests', 
+    roles: ['Admin', 'SuperAdmin'] 
   },
   { 
     icon: Users, 
